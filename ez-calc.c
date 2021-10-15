@@ -75,8 +75,6 @@ void priorityCalc(void){
     }
     expression_size = strlen(expression);
 
-    printf("%s\n", expression);
-
     signFinder('^');
     signFinder('*');
     signFinder('x');
@@ -97,36 +95,27 @@ void priorityCalc(void){
 
 void parenthesisCounter(void){
     // search for parenthesis in the formula in order to get a stop condition
-    int opening_parenthesis_count=0;
-    int closing_parenthesis_count=0;
-
     for(counter=0; counter<formula_size; counter++){
-        if (formula[counter] == 40){
-            opening_parenthesis_count++;
-        }
-        else if (formula[counter] == 41){
-            closing_parenthesis_count++;
+        if (formula[counter] == '(' || formula[counter] == ')'){
+            parenthesis_count++;
         }
     }
     
-    if (opening_parenthesis_count != closing_parenthesis_count){
+    if (parenthesis_count%2 != 0){
         puts("Parenthesis count incorrect it won't work");
     }
-    else if (opening_parenthesis_count == 0 && closing_parenthesis_count == 0){
-        parenthesis_count = 0;
-        for (counter = 0; counter>formula_size; counter++){
-            expression[counter] = formula[counter];
+    else{
+        parenthesis_count = parenthesis_count / 2;
+        if (parenthesis_count == 0){
+            for (counter = 0; counter>formula_size; counter++){
+                expression[counter] = formula[counter];
+            }
         }
-        priorityCalc();
-    }
-    else {
-        parenthesis_count = opening_parenthesis_count;
         priorityCalc();
     }
 }
 
 int main(int argc, char **argv){
-
     if (argc > 3){
         puts("Too many args");
         return 1;
@@ -138,7 +127,6 @@ int main(int argc, char **argv){
     else if (argc == 2) {
         formula = argv[1];
         formula_size = strlen(argv[1]);
-
         printf("The formula provided is %s\n", formula);
         parenthesisCounter();
         return 0;
