@@ -1,86 +1,97 @@
-#import <stdio.h>
-#import <stdlib.h>
-#import <string.h>
-#import <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
 
 
-char *expression;
 char *formula;
+char expression[30];
 int parenthesis_count = 0, parenthesis_location[2], counter, formula_size, expression_size, sign_location = -1;
 
-void parenthesisCalc(void){
-    // search for parenthesis in the formula then forwards the expression found between the parenthesis to next priority detection
-    char *expr_temp = "";
-    int i = 0;
+void signInterpreter(char sign){
+    switch (sign) {
+        case '^':
+            puts("Exponant found !");
+            break;
+        case 'x':
+        case 'X':
+        case '*':
+            puts("Multiplication found !");
+            break;
+        case '/':
+            puts("Division found !");
+            break;
+        case '+':
+            puts("Addition found !");
+            break;
+        case '-':
+            puts("Substraction found !");
+            break;
+        default:
+            break;
+    }
+}
 
+void signFinder(char sign){
     counter = 0;
 
-    while (counter<formula_size){
-        if (formula[counter] == '('){
-            parenthesis_location[0] = counter+1;
+    if (sign == '('){
+        while (counter<formula_size){
+            if (formula[counter] == '('){
+                parenthesis_location[0] = counter;
+            }
+            else if (formula[counter] == ')'){
+                parenthesis_location[1] = counter + 1;
+                break;
+            }
+            counter++;
         }
-        else if (formula[counter] == ')'){
-            parenthesis_location[1] = counter;
-            break;
+    }
+    else {
+        while (counter<expression_size){
+            if (expression[counter] == sign){
+                sign_location = counter;
+                signInterpreter(sign);
+                break;
+            }
+            else {
+                counter++;
+            }
         }
-        counter++;
     }
-
-    for(counter=++parenthesis_location[0]; counter<parenthesis_location[1]; counter++){
-        strcat(expr_temp, formula[counter]);
-    }
-    printf("%s\n", expr_temp);
-    expression_size = strlen(expr_temp);
-    printf("%s\n", expression);
-    exponentCalc();
 }
 
-void exponentCalc(void){
-    // search for exponent in the formula then replace with the result and forward to next priority detection
+void priorityCalc(void){
+    // search for sign in the formula then replace with the result and forward to next priority detection
+    int i = 0;
+    parenthesis_location[0] = -1;
+
+    signFinder('(');
+    if (parenthesis_location[0] != -1){
+        for(counter=parenthesis_location[0]; counter<parenthesis_location[1]; counter++){
+            expression[i++] = formula[counter];
+        }
+        expression[i] = '\0';
+    }
+    expression_size = strlen(expression);
+
     printf("%s\n", expression);
+
     signFinder('^');
-    printf("%d\n", sign_location);
-    
-    multiplicationCalc();
-}
-
-void multiplicationCalc(void){
-    // search for multiplication in the formula then replace with the result and forward to next priority detection
     signFinder('*');
     signFinder('x');
     signFinder('X');
-    printf("%d\n", sign_location);
-    
-    divisionCalc();
-}
-
-void divisionCalc(void){
-    // search for division in the formula then replace with the result and forward to next priority detection
     signFinder('/');
-    printf("%d\n", sign_location);
-    
-    additionCalc();
-}
-
-void additionCalc(void){
-    // search for addition in the formula then replace with the result and forward to next priority detection
     signFinder('+');
-    printf("%d\n", sign_location);
-
-    substractionCalc();
-}
-
-void substractionCalc(void){
-    // search for substraction in the formula then replace with the result and forward to next priority detection
     signFinder('-');
-    printf("%d\n", sign_location);
+    
     
     if (parenthesis_count == 0){
         printf("The result is %s\n", formula);
     }
     else {
         --parenthesis_count;
-        parenthesisCalc();
+        priorityCalc();
     }
 }
 
@@ -88,7 +99,6 @@ void parenthesisCounter(void){
     // search for parenthesis in the formula in order to get a stop condition
     int opening_parenthesis_count=0;
     int closing_parenthesis_count=0;
-    int counter;
 
     for(counter=0; counter<formula_size; counter++){
         if (formula[counter] == 40){
@@ -104,26 +114,14 @@ void parenthesisCounter(void){
     }
     else if (opening_parenthesis_count == 0 && closing_parenthesis_count == 0){
         parenthesis_count = 0;
-        exponentCalc();
+        for (counter = 0; counter>formula_size; counter++){
+            expression[counter] = formula[counter];
+        }
+        priorityCalc();
     }
     else {
         parenthesis_count = opening_parenthesis_count;
-        parenthesisCalc();
-    }
-}
-
-void signFinder(char sign){
-    counter = 0;
-    printf("%s\n", expression);
-
-    while (counter<expression_size){
-        if (expression[counter] == sign){
-            sign_location = counter;
-            break;
-        }
-        else {
-            counter++;
-        }
+        priorityCalc();
     }
 }
 
@@ -139,7 +137,8 @@ int main(int argc, char **argv){
     }
     else if (argc == 2) {
         formula = argv[1];
-        formula_size = strlen(formula);
+        formula_size = strlen(argv[1]);
+
         printf("The formula provided is %s\n", formula);
         parenthesisCounter();
         return 0;
