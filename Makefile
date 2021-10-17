@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -Wstrict-prototypes -std=c99
+CFLAGS = -Wall -Wextra -Werror -Wstrict-prototypes -std=c99 -lm
 RM = rm -f
 NAME = calc
 SRC = *.c
