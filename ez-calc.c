@@ -3,7 +3,11 @@
 #include <string.h>
 #include <math.h>
 
-char expression[30], str_result[30], formula[30], sign, sign_tab[8] = {'^', 'x', 'X', '*', '/', '%', '+', '-'};
+char expression[30], str_result[30], formula[30], sign;
+char sign_tab_parenthesis[2] = {'(', '\0'};
+char sign_tab_exponant[3] = {'^', '|', '\0'};
+char sign_tab_multiplication[6] = {'x', 'X', '*', '/', '%', '\0'};
+char sign_tab_addition[3] = {'+', '-', '\0'};
 int parenthesis_count = 0, parenthesis_location[2], counter, formula_size, expression_size, sign_location = 0, number_one_length, number_two_length;
 float number_one, number_two, result;
 /*
@@ -37,32 +41,38 @@ void expressionRewriter(void){
     char tmp_expression[30];
     int i = 0, f = 0, supposed_length, result_length;
     counter = 0;
+    // Convert float result into a string
     sprintf(str_result, "%.2f", result);
     result_length = strlen(str_result);
+    // Calculate the future length of the expression
     supposed_length = (strlen(expression) + strlen(str_result) + 1 ) - ( number_one_length + number_two_length);
 
     while (counter < supposed_length) {
-            if (counter < (sign_location - number_one_length) || f == result_length + 1){
-                tmp_expression[counter++] = expression[i++];
-            }
-            else if (counter >= (sign_location - number_one_length) && f != result_length){
-                tmp_expression[counter++] = str_result[f++];
-            }
-            else if (f == result_length){
-                ++f;
-                i = i + number_one_length + number_two_length + 1;
-            }
+        // if the character doesn't need to be changed then put it in tmp_expression
+        if (counter < (sign_location - number_one_length) || f == result_length + 1){
+            tmp_expression[counter++] = expression[i++];
         }
-
+        // if the character should be changed then get it from the result
+        else if (counter >= (sign_location - number_one_length) && f != result_length){
+            tmp_expression[counter++] = str_result[f++];
+        }
+        // if the result has been fully put in place continue putting from the expression
+        else if (f == result_length){
+            ++f;
+            i = i + number_one_length + number_two_length + 1;
+        }
+    }
+    // put tmp_expression into expression
     for (counter = 0; counter <= 30; counter++) {
         expression[counter] = tmp_expression[counter];
     }
+    expression_size = strlen(expression);
+    printf("%d\n", expression_size);
 }
 
 void numberFinder(void){
     char number[30];
     int i = 0;
-
 
     for (counter = 0; counter <= expression_size; counter++){
         if (counter <= sign_location){
@@ -76,6 +86,7 @@ void numberFinder(void){
                 number[i++] = '\0';
                 number_one_length = strlen(number);
                 number_one = atof(number);
+                printf("%f\n", number_one);
                 i = 0;
             }
             else {
@@ -93,6 +104,7 @@ void numberFinder(void){
                 number[i++] = '\0';
                 number_two_length = strlen(number);
                 number_two = atof(number);
+                printf("%f\n", number_two);
             }
         }
     }
@@ -104,12 +116,14 @@ void signInterpreter(void){
         case '^':
             numberFinder();
             result = powf(number_one, number_two);
+            printf("result = %f\n", result);
             break;
         case 'x':
         case 'X':
         case '*':
             numberFinder();
             result = number_one * number_two;
+            printf("result = %f\n", result);
             break;
         case '/':
             numberFinder();
@@ -119,20 +133,24 @@ void signInterpreter(void){
             }
             else{
                 result = number_one / number_two;
+                printf("result = %f\n", result);
             }
             break;
         case '%':
             numberFinder();
             result = number_one / number_two;
+            printf("result = %f\n", result);
             // remainder = number_one % number_two;
             break;
         case '+':
             numberFinder();
             result = number_one + number_two;
+            printf("result = %f\n", result);
             break;
         case '-':
             numberFinder();
             result = number_one - number_two;
+            printf("result = %f\n", result);
             break;
         default:
             break;
@@ -140,10 +158,12 @@ void signInterpreter(void){
     expressionRewriter();
 }
 
-void signFinder(void){
+void signFinder(char *tab){
+    int i = 0, tab_len = strlen(tab);
     counter = 0;
+    printf("%s\n", tab);
     // if we search for opening parenthesis search for both parenthesis
-    if (sign == '('){
+    if (tab[0] == '('){
         while (counter<formula_size){
             // if opening parenthesis found add counter to location[0] keep searching for opening parenthesis
             if (formula[counter] == '('){
@@ -161,10 +181,14 @@ void signFinder(void){
     else {
         while (counter<expression_size){
             // if operator found send to interpretation
-            if (expression[counter] == sign){
-                sign_location = counter,
-                signInterpreter();
-                counter = sign_location;
+            for (i = 0; i < tab_len; i++){
+                if (expression[counter] == tab[i]){
+                    sign = tab[i];
+                    printf("%c = %d = %d = %s\n", sign, expression[counter], counter, tab);
+                    sign_location = counter;
+                    signInterpreter();
+                    counter = 0;
+                }
             }
             counter++;
         }
@@ -177,8 +201,7 @@ void priorityCalc(void){
     parenthesis_location[0] = -1;
 
     // going thru the PEMDAS order
-    sign = '(';
-    signFinder();
+    signFinder(sign_tab_parenthesis);
     // if parenthesis_location[0] is not -1 there is still parenthesis
     if (parenthesis_location[0] != -1){
         for(counter=parenthesis_location[0]; counter<parenthesis_location[1]; counter++){
@@ -198,17 +221,14 @@ void priorityCalc(void){
         expression[i] = '\0';
     }
     expression_size = strlen(expression);
+    signFinder(sign_tab_exponant);
+    signFinder(sign_tab_multiplication);
+    signFinder(sign_tab_addition);
 
-    i = 0;    
-    while (i < 8){
-        sign = sign_tab[i++];
-        signFinder();
-    }
-
-    printf("The result of the expression is %s\n", expression);
+    // parenthesisReplacer();
     
     if (parenthesis_count == 0){
-        printf("The result is %s\n", formula);
+        printf("The result is %s\n", expression);
     }
     else {
         // start a recursion if there is still parenthesis
