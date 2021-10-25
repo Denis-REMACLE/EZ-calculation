@@ -3,45 +3,53 @@
 #include <string.h>
 #include <math.h>
 
-char expression[30], str_result[30], formula[30], sign;
+char expression[30], formula[30], sign;
 char sign_tab_parenthesis[2] = {'(', '\0'};
 char sign_tab_exponant[3] = {'^', '|', '\0'};
 char sign_tab_multiplication[6] = {'x', 'X', '*', '/', '%', '\0'};
 char sign_tab_addition[3] = {'+', '-', '\0'};
-int parenthesis_count = 0, parenthesis_location[2], counter, formula_size, expression_size, sign_location = 0, number_one_length, number_two_length;
+int parenthesis_count = 0, parenthesis_location[2], negative_location[30], counter, formula_size, expression_size, sign_location = 0, number_one_length, number_two_length;
 float number_one, number_two, result;
-/*
+
 void parenthesisReplacer(void){
     char tmp_formula[30];
     int i = 0, f = 0, supposed_length, result_length;
     counter = 0;
-    sprintf(str_result, "%.2f", result);
-    result_length = strlen(str_result);
-    supposed_length = (strlen(expression) + strlen(str_result) + 1 ) - ( number_one_length + number_two_length);
+    result_length = strlen(expression) - 2;
+    supposed_length = formula_size - expression_size + result_length;
 
-    while (counter < supposed_length) {
-            if (counter < (sign_location - number_one_length) || f == result_length + 1){
-                tmp_expression[counter++] = expression[i++];
+    while (counter < supposed_length + 1) {
+            if (counter >= parenthesis_location[0] && f <= result_length + 1){
+                if (expression[f] == '('){
+                    ++f;
+                }
+                else if (expression[f] == ')'){
+                    ++f;
+                    i = i + result_length;
+                }
+                else{
+                    tmp_formula[counter++] = expression[f++];
+                }
             }
-            else if (counter >= (sign_location - number_one_length) && f != result_length){
-                tmp_expression[counter++] = str_result[f++];
-            }
-            else if (f == result_length){
-                ++f;
-                i = i + number_one_length + number_two_length + 1;
+            else {
+                tmp_formula[counter++] = formula[i++];
             }
         }
 
     for (counter = 0; counter <= 30; counter++) {
-        expression[counter] = tmp_expression[counter];
+        formula[counter] = tmp_formula[counter];
     }
 }
-*/
+
 void expressionRewriter(void){
-    char tmp_expression[30];
+    char tmp_expression[30], str_result[30];
     int i = 0, f = 0, supposed_length, result_length;
     counter = 0;
     // Convert float result into a string
+    if (result < 0){
+        puts("Negative number unsupported");
+        exit(0);
+    }
     sprintf(str_result, "%.2f", result);
     result_length = strlen(str_result);
     // Calculate the future length of the expression
@@ -66,8 +74,6 @@ void expressionRewriter(void){
     for (counter = 0; counter <= 30; counter++) {
         expression[counter] = tmp_expression[counter];
     }
-    expression_size = strlen(expression);
-    printf("%d\n", expression_size);
 }
 
 void numberFinder(void){
@@ -86,7 +92,6 @@ void numberFinder(void){
                 number[i++] = '\0';
                 number_one_length = strlen(number);
                 number_one = atof(number);
-                printf("%f\n", number_one);
                 i = 0;
             }
             else {
@@ -104,7 +109,6 @@ void numberFinder(void){
                 number[i++] = '\0';
                 number_two_length = strlen(number);
                 number_two = atof(number);
-                printf("%f\n", number_two);
             }
         }
     }
@@ -116,41 +120,34 @@ void signInterpreter(void){
         case '^':
             numberFinder();
             result = powf(number_one, number_two);
-            printf("result = %f\n", result);
             break;
         case 'x':
         case 'X':
         case '*':
             numberFinder();
             result = number_one * number_two;
-            printf("result = %f\n", result);
             break;
         case '/':
             numberFinder();
             if (number_one == 0 || number_two == 0){
-                puts("Cannot divide by 0");
-                exit(0);
+                exit(1);
             }
             else{
                 result = number_one / number_two;
-                printf("result = %f\n", result);
             }
             break;
         case '%':
             numberFinder();
             result = number_one / number_two;
-            printf("result = %f\n", result);
             // remainder = number_one % number_two;
             break;
         case '+':
             numberFinder();
             result = number_one + number_two;
-            printf("result = %f\n", result);
             break;
         case '-':
             numberFinder();
             result = number_one - number_two;
-            printf("result = %f\n", result);
             break;
         default:
             break;
@@ -161,7 +158,6 @@ void signInterpreter(void){
 void signFinder(char *tab){
     int i = 0, tab_len = strlen(tab);
     counter = 0;
-    printf("%s\n", tab);
     // if we search for opening parenthesis search for both parenthesis
     if (tab[0] == '('){
         while (counter<formula_size){
@@ -184,7 +180,6 @@ void signFinder(char *tab){
             for (i = 0; i < tab_len; i++){
                 if (expression[counter] == tab[i]){
                     sign = tab[i];
-                    printf("%c = %d = %d = %s\n", sign, expression[counter], counter, tab);
                     sign_location = counter;
                     signInterpreter();
                     counter = 0;
@@ -205,18 +200,14 @@ void priorityCalc(void){
     // if parenthesis_location[0] is not -1 there is still parenthesis
     if (parenthesis_location[0] != -1){
         for(counter=parenthesis_location[0]; counter<parenthesis_location[1]; counter++){
-            if (formula[counter] != ' '){
-                expression[i++] = formula[counter];
-            }
+            expression[i++] = formula[counter];
         }
         expression[i] = '\0';
     }
     // else there is no parenthesis
     else {
         for (counter = 0; counter<formula_size; counter++){
-            if (formula[counter] != ' '){
-                expression[i++] = formula[counter];
-            }
+            expression[i++] = formula[counter];
         }
         expression[i] = '\0';
     }
@@ -224,8 +215,6 @@ void priorityCalc(void){
     signFinder(sign_tab_exponant);
     signFinder(sign_tab_multiplication);
     signFinder(sign_tab_addition);
-
-    // parenthesisReplacer();
     
     if (parenthesis_count == 0){
         printf("The result is %s\n", expression);
@@ -233,6 +222,7 @@ void priorityCalc(void){
     else {
         // start a recursion if there is still parenthesis
         --parenthesis_count;
+        parenthesisReplacer();
         priorityCalc();
     }
 }
@@ -243,6 +233,7 @@ void parenthesisCounter(void){
         if (formula[counter] == '(' || formula[counter] == ')'){
             parenthesis_count++;
         }
+        
     }
     // if parenthesis_count is odd there is an issue
     if (parenthesis_count%2 != 0){
