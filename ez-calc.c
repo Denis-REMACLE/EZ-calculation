@@ -30,9 +30,10 @@ void parenthesisReplacer(void){
             }
             else {
                 tmp_formula[counter++] = formula[i++];
-                tmp_formula[counter+1] = '\0';
+                
             }
         }
+    tmp_formula[counter] = '\0';
 
     for (counter = 0; counter <= 30; counter++) {
         formula[counter] = tmp_formula[counter];
@@ -51,17 +52,16 @@ void expressionRewriter(void){
     while (counter < supposed_length) {
         // if the character doesn't need to be changed then put it in tmp_expression
         if (counter < (sign_location - number_one_length) || f == result_length + 1){
-            if (expression[i] == '='){
-                ++i;
-                tmp_expression[counter++] = 'n';
-            }
-            else {
-                tmp_expression[counter++] = expression[i++];
-            }
+            tmp_expression[counter++] = expression[i++];
         }
         // if the character should be changed then get it from the result
         else if (counter >= (sign_location - number_one_length) && f != result_length){
+            if (str_result[f] == '-'){
+                tmp_expression[counter++] = 'n';
+            }
+            else {
             tmp_expression[counter++] = str_result[f++];
+            }
         }
         // if the result has been fully put in place continue putting from the expression
         else if (f == result_length){
@@ -126,6 +126,10 @@ void signInterpreter(void){
     switch (sign) {
         case '^':
             result = powf(number_one, number_two);
+            remain = 0;
+            break;
+        case '|':
+            result = sqrt(number_two);
             remain = 0;
             break;
         case 'x':
@@ -269,9 +273,8 @@ void parenthesisCounter(void){
 }
 
 int main(int argc, char **argv){
-    //char authorized_char = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' ', '.', ',', '(', ')', 'n', 'N', '^', '|', 'x', 'X', '*', '/', '%', '+', '-', '\0'};
+    char authorized_char[27] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' ', '.', ',', '(', ')', 'n', 'N', '^', '|', 'x', 'X', '*', '/', '%', '+', '-', '\0'};
     int counter = 0;
-    //printf("%s\n", authorized_char);
     if (argc != 2){
         puts("You need to use the command like ./calc \"formula\"");
         return 1;
@@ -279,8 +282,14 @@ int main(int argc, char **argv){
     else if (argc == 2) {
         formula_size = strlen(argv[1]);
         for(counter=0; counter<formula_size; counter++){
-            if (formula[counter] != ' '){
-                formula[counter] = argv[1][counter];
+            if (strchr(authorized_char, formula[counter]) == NULL){
+                puts("You inputed a wrong character !");
+                exit(1);
+            }
+            else {
+                if (formula[counter] != ' '){
+                    formula[counter] = argv[1][counter];
+                }
             }
         }
         formula[formula_size+1] = '\0';
