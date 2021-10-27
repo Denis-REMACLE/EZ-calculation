@@ -232,10 +232,10 @@ void priorityCalc(void){
     
     if (parenthesis_count == 0){
         if (remain == 0){
-            printf("The result is %s\n", expression);
+            printf("The result is %.2f\n", result);
         }
         else{
-            printf("The result is %s and remainder is %.0f\n", expression, remain);
+            printf("The result is %.2f and remainder is %.0f\n", result, remain);
         }
     }
     else {
