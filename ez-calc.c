@@ -8,7 +8,34 @@ char expression[30], formula[30], sign;
 int parenthesis_count = 0, parenthesis_location[2], negative_location[30], counter, formula_size, expression_size, sign_location = 0, number_one_length, number_two_length;
 float number_one, number_two, result, remain = 0;
 
-void parenthesisReplacer(void){
+void errorCheck(void) {
+    if (sign != '|') {
+        if (number_one_length == 0 || number_two_length == 0){
+            puts("You cannot operate without numbers");
+            exit(4);
+        }
+    }
+    else {
+        if (number_two_length == 0){
+            puts("You cannot operate without numbers");
+            exit(4);
+        }
+        else if (number_one_length != 0) {
+            puts("You cannot put a number before a '|'");
+            exit(2);
+        }
+    }
+
+    if (sign == '/' || sign == '%') {
+        if (number_one == 0 || number_two == 0){
+            puts("You cannot divide by 0");
+            exit(3);
+        }
+    }
+
+}
+
+void parenthesisReplacer(void) {
     char tmp_formula[30];
     int counter = 0, i = 0, f = 0, supposed_length, result_length;
     counter = 0;
@@ -40,7 +67,7 @@ void parenthesisReplacer(void){
     }
 }
 
-void expressionRewriter(void){
+void expressionRewriter(void) {
     char tmp_expression[30], str_result[30];
     int counter = 0, i = 0, f = 0, supposed_length, result_length;
     // Convert float result into a string
@@ -76,7 +103,7 @@ void expressionRewriter(void){
     expression_size = strlen(expression);
 }
 
-void numberFinder(void){
+void numberFinder(void) {
     char number[30];
     int counter = 0, i = 0;
 
@@ -120,9 +147,10 @@ void numberFinder(void){
     }
 }
 
-void signInterpreter(void){
+void signInterpreter(void) {
     // if the sign is found proceed with calculation then replace formula (or part of it if there is parenthesis) with expression
     numberFinder();
+    errorCheck();
     switch (sign) {
         case '^':
             result = powf(number_one, number_two);
@@ -139,22 +167,12 @@ void signInterpreter(void){
             remain = 0;
             break;
         case '/':
-            if (number_one == 0 || number_two == 0){
-                exit(1);
-            }
-            else{
-                result = number_one / number_two;
-                remain = 0;
-            }
+            result = number_one / number_two;
+            remain = 0;
             break;
         case '%':
-            if (number_one == 0 || number_two == 0){
-                exit(1);
-            }
-            else{
-                result = number_one / number_two;
-                remain = fmod(number_one, number_two);
-            }
+            result = number_one / number_two;
+            remain = fmod(number_one, number_two);
             break;
         case '+':
             result = number_one + number_two;
@@ -170,7 +188,7 @@ void signInterpreter(void){
     expressionRewriter();
 }
 
-void signFinder(char *tab){
+void signFinder(char *tab) {
     int i = 0, tab_len = strlen(tab);
     int counter = 0;
     // if we search for opening parenthesis search for both parenthesis
@@ -205,7 +223,7 @@ void signFinder(char *tab){
     }
 }
 
-void priorityCalc(void){
+void priorityCalc(void) {
     int counter = 0;
     // search for sign in the formula then replace with the result and forward to next priority detection
     char sign_tab_parenthesis[2] = {'(', '\0'};
@@ -252,7 +270,7 @@ void priorityCalc(void){
     }
 }
 
-void parenthesisCounter(void){
+void parenthesisCounter(void) {
     int counter = 0;
     // search for parenthesis in the formula in order to get a stop condition
     for(counter=0; counter<formula_size; counter++){
@@ -272,9 +290,9 @@ void parenthesisCounter(void){
     }
 }
 
-int main(int argc, char **argv){
+int main(int argc, char **argv) {
     char authorized_char[27] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' ', '.', ',', '(', ')', 'n', 'N', '^', '|', 'x', 'X', '*', '/', '%', '+', '-', '\0'};
-    int counter = 0;
+    int counter = 0, good = 0, i;
     if (argc != 2){
         puts("You need to use the command like ./calc \"formula\"");
         return 1;
@@ -282,7 +300,12 @@ int main(int argc, char **argv){
     else if (argc == 2) {
         formula_size = strlen(argv[1]);
         for(counter=0; counter<formula_size; counter++){
-            if (strchr(authorized_char, formula[counter]) == NULL){
+            for (i = 0; i < 27 ; i++){
+                if (argv[1][counter] == authorized_char[i]){
+                    good = 1;
+                }
+            }
+            if (good != 1){
                 puts("You inputed a wrong character !");
                 exit(1);
             }
@@ -290,6 +313,7 @@ int main(int argc, char **argv){
                 if (formula[counter] != ' '){
                     formula[counter] = argv[1][counter];
                 }
+                good = 0;
             }
         }
         formula[formula_size+1] = '\0';
