@@ -4,16 +4,13 @@
 #include <math.h>
 
 char expression[30], formula[30], sign;
-char sign_tab_parenthesis[2] = {'(', '\0'};
-char sign_tab_exponant[3] = {'^', '|', '\0'};
-char sign_tab_multiplication[6] = {'x', 'X', '*', '/', '%', '\0'};
-char sign_tab_addition[3] = {'+', '-', '\0'};
+
 int parenthesis_count = 0, parenthesis_location[2], negative_location[30], counter, formula_size, expression_size, sign_location = 0, number_one_length, number_two_length;
 float number_one, number_two, result, remain = 0;
 
 void parenthesisReplacer(void){
     char tmp_formula[30];
-    int i = 0, f = 0, supposed_length, result_length;
+    int counter = 0, i = 0, f = 0, supposed_length, result_length;
     counter = 0;
     result_length = strlen(expression);
     supposed_length = formula_size - expression_size + result_length;
@@ -44,8 +41,7 @@ void parenthesisReplacer(void){
 
 void expressionRewriter(void){
     char tmp_expression[30], str_result[30];
-    int i = 0, f = 0, supposed_length, result_length;
-    counter = 0;
+    int counter = 0, i = 0, f = 0, supposed_length, result_length;
     // Convert float result into a string
     sprintf(str_result, "%.2f", result);
     result_length = strlen(str_result);
@@ -77,11 +73,12 @@ void expressionRewriter(void){
     for (counter = 0; counter <= 30; counter++) {
         expression[counter] = tmp_expression[counter];
     }
+    expression_size = strlen(expression);
 }
 
 void numberFinder(void){
     char number[30];
-    int i = 0;
+    int counter = 0, i = 0;
 
     for (counter = 0; counter <= expression_size; counter++){
         if (counter <= sign_location){
@@ -171,7 +168,7 @@ void signInterpreter(void){
 
 void signFinder(char *tab){
     int i = 0, tab_len = strlen(tab);
-    counter = 0;
+    int counter = 0;
     // if we search for opening parenthesis search for both parenthesis
     if (tab[0] == '('){
         while (counter<formula_size){
@@ -205,7 +202,12 @@ void signFinder(char *tab){
 }
 
 void priorityCalc(void){
+    int counter = 0;
     // search for sign in the formula then replace with the result and forward to next priority detection
+    char sign_tab_parenthesis[2] = {'(', '\0'};
+    char sign_tab_exponant[3] = {'^', '|', '\0'};
+    char sign_tab_multiplication[6] = {'x', 'X', '*', '/', '%', '\0'};
+    char sign_tab_addition[3] = {'+', '-', '\0'};
     int i = 0;
     parenthesis_location[0] = -1;
 
@@ -247,6 +249,7 @@ void priorityCalc(void){
 }
 
 void parenthesisCounter(void){
+    int counter = 0;
     // search for parenthesis in the formula in order to get a stop condition
     for(counter=0; counter<formula_size; counter++){
         if (formula[counter] == '(' || formula[counter] == ')'){
@@ -266,6 +269,9 @@ void parenthesisCounter(void){
 }
 
 int main(int argc, char **argv){
+    //char authorized_char = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' ', '.', ',', '(', ')', 'n', 'N', '^', '|', 'x', 'X', '*', '/', '%', '+', '-', '\0'};
+    int counter = 0;
+    //printf("%s\n", authorized_char);
     if (argc != 2){
         puts("You need to use the command like ./calc \"formula\"");
         return 1;
