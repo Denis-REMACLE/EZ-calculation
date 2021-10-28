@@ -3,9 +3,8 @@
 #include <string.h>
 #include <math.h>
 
-char expression[30], formula[30], sign;
-
-int parenthesis_count = 0, parenthesis_location[2], negative_location[30], counter, formula_size, expression_size, sign_location = 0, number_one_length, number_two_length;
+char expression[100], formula[100], sign;
+int parenthesis_location[2], counter, formula_size, expression_size, sign_location = 0, number_one_length, number_two_length;
 float number_one, number_two, result, remain = 0;
 
 void errorCheck(void) {
@@ -36,7 +35,7 @@ void errorCheck(void) {
 }
 
 void parenthesisReplacer(void) {
-    char tmp_formula[30];
+    char tmp_formula[100];
     int counter = 0, i = 0, f = 0, supposed_length, result_length;
     counter = 0;
     result_length = strlen(expression);
@@ -62,7 +61,7 @@ void parenthesisReplacer(void) {
         }
     tmp_formula[counter] = '\0';
 
-    for (counter = 0; counter <= 30; counter++) {
+    for (counter = 0; counter <= 100; counter++) {
         formula[counter] = tmp_formula[counter];
     }
 }
@@ -223,7 +222,7 @@ void signFinder(char *tab) {
     }
 }
 
-void priorityCalc(void) {
+void priorityCalc(int parenthesis_count) {
     int counter = 0;
     // search for sign in the formula then replace with the result and forward to next priority detection
     char sign_tab_parenthesis[2] = {'(', '\0'};
@@ -264,14 +263,13 @@ void priorityCalc(void) {
     }
     else {
         // start a recursion if there is still parenthesis
-        --parenthesis_count;
         parenthesisReplacer();
-        priorityCalc();
+        priorityCalc(--parenthesis_count);
     }
 }
 
 void parenthesisCounter(void) {
-    int counter = 0;
+    int parenthesis_count = 0, counter = 0;
     // search for parenthesis in the formula in order to get a stop condition
     for(counter=0; counter<formula_size; counter++){
         if (formula[counter] == '(' || formula[counter] == ')'){
@@ -285,8 +283,7 @@ void parenthesisCounter(void) {
     }
     // else we are good to go
     else{
-        parenthesis_count = parenthesis_count / 2;
-        priorityCalc();
+        priorityCalc(parenthesis_count/2);
     }
 }
 
