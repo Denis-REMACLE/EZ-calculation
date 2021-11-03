@@ -4,7 +4,7 @@
 #include <math.h>
 
 char expression[100], formula[100], sign;
-int parenthesis_location[2], counter, formula_size, expression_size, sign_location = 0, number_one_length, number_two_length;
+int parenthesis_location[2], formula_size, expression_size, sign_location = 0, number_one_length, number_two_length;
 float number_one, number_two, result, remain = 0;
 
 void errorCheck(void) {
@@ -38,36 +38,39 @@ void parenthesisReplacer(void) {
     char tmp_formula[100];
     int counter = 0, i = 0, f = 0, supposed_length, result_length;
     counter = 0;
+    // Calculate the future length of the formula
     result_length = strlen(expression);
     supposed_length = formula_size - expression_size + result_length;
 
-    while (counter < supposed_length - 2) {
-            if (counter >= parenthesis_location[0] && f != result_length){
+    while (counter < supposed_length) {
+
+	    // if the character should be changed then get it from the expression
+	    if (counter >= parenthesis_location[0] && f != result_length){
                 if (expression[f] == '('){
                     ++f;
                 }
                 else if (expression[f] == ')'){
                     ++f;
-                    i = i + (parenthesis_location[1] - parenthesis_location[0]);
+                    i = i + expression_size;
                 }
                 else{
                     tmp_formula[counter++] = expression[f++];
                 }
-            }
-            else {
+            } else {
+		// if the character doesn't need to be changed
                 tmp_formula[counter++] = formula[i++];
-                
             }
         }
-    tmp_formula[counter] = '\0';
+    tmp_formula[counter++] = '\0';
 
+    // put tmp_expression into expression
     for (counter = 0; counter <= 100; counter++) {
         formula[counter] = tmp_formula[counter];
     }
 }
 
 void expressionRewriter(void) {
-    char tmp_expression[30], str_result[30];
+    char tmp_expression[100], str_result[100];
     int counter = 0, i = 0, f = 0, supposed_length, result_length;
     // Convert float result into a string
     sprintf(str_result, "%.2f", result);
@@ -84,6 +87,7 @@ void expressionRewriter(void) {
         else if (counter >= (sign_location - number_one_length) && f != result_length){
             if (str_result[f] == '-'){
                 tmp_expression[counter++] = 'n';
+		f++;
             }
             else {
             tmp_expression[counter++] = str_result[f++];
@@ -91,63 +95,62 @@ void expressionRewriter(void) {
         }
         // if the result has been fully put in place continue putting from the expression
         else if (f == result_length){
-            ++f;
+            f++;
             i = i + number_one_length + number_two_length + 1;
         }
     }
     // put tmp_expression into expression
-    for (counter = 0; counter <= 30; counter++) {
+    for (counter = 0; counter <= 100; counter++) {
         expression[counter] = tmp_expression[counter];
     }
-    expression_size = strlen(expression);
 }
 
 void numberFinder(void) {
-    char number[30];
+    char number[100];
     int counter = 0, i = 0;
+    // loop through the expression
 
     for (counter = 0; counter <= expression_size; counter++){
         if (counter <= sign_location){
+	    // if sign location not attained put data in number
             if ((expression[counter] >= '0' && expression[counter] <= '9') || expression[counter] == '.'){
                 number[i++] = expression[counter];
-            }
-            else if (expression[counter] == ','){
+            } else if (expression[counter] == ','){
                 number[i++] = '.';
-            }
-            else if (expression[counter] == 'n' || expression[counter] == 'N'){
+            } else if (expression[counter] == 'n' || expression[counter] == 'N'){
                 number[i++] = '-';
-            }
-            else if (expression[counter] == sign) {
-                number[i++] = '\0';
+            } else if (expression[counter] == sign) {
+                // if sign is hit put the number 
+		number[i++] = '\0';
                 number_one_length = strlen(number);
                 number_one = atof(number);
                 i = 0;
-            }
-            else {
-                i = 0;
+		// then restart i
+            } else {
+                // if a character should be not be put restart i
+		i = 0;
             }
         }
         else if (counter > sign_location){
-            if ((expression[counter] >= '0' && expression[counter] <= '9') || expression[counter] == '.'){
-                number[i++] = expression[counter];
-            }
-            else if (expression[counter] == ','){
+	    // put characters in number until a non valid sign is hit
+            if ((expression[counter] >= '0' && expression[counter] <= '9') || expression[counter] == '.') {
+		number[i++] = expression[counter];
+            } else if (expression[counter] == ','){
                 number[i++] = '.';
-            }
-            else if (expression[counter] == 'n' || expression[counter] == 'N'){
+            } else if (expression[counter] == 'n' || expression[counter] == 'N'){
                 number[i++] = '-';
-            }
-            else {
-                number[i++] = '\0';
-                number_two_length = strlen(number);
-                number_two = atof(number);
-            }
-        }
+            } else {
+		break;
+	    }
+	}
     }
+    number[i++] = '\0';
+    number_two_length = strlen(number);
+    number_two = atof(number);
 }
 
 void signInterpreter(void) {
-    // if the sign is found proceed with calculation then replace formula (or part of it if there is parenthesis) with expression
+    // if the sign is found proceed with calculation then replace part of the expression
     numberFinder();
     errorCheck();
     switch (sign) {
@@ -184,7 +187,9 @@ void signInterpreter(void) {
         default:
             break;
     }
+    printf("Calculating : %s\n", expression);
     expressionRewriter();
+    printf("Resulting : %s\n\n", expression);
 }
 
 void signFinder(char *tab) {
@@ -210,13 +215,13 @@ void signFinder(char *tab) {
         while (counter<expression_size){
             // if operator found send to interpretation
             for (i = 0; i < tab_len; i++){
-                if (expression[counter] == tab[i]){
-                    sign = tab[i];
+                if (expression[counter] == tab[i]) {
+		    sign = tab[i];
                     sign_location = counter;
                     signInterpreter();
-                    counter = 0;
+		    counter = 0;
                 }
-            }
+	    }
             counter++;
         }
     }
@@ -252,7 +257,7 @@ void priorityCalc(int parenthesis_count) {
     signFinder(sign_tab_exponant);
     signFinder(sign_tab_multiplication);
     signFinder(sign_tab_addition);
-    
+
     if (parenthesis_count == 0){
         if (remain == 0){
             printf("The result is %.2f\n", result);
@@ -295,18 +300,31 @@ int main(int argc, char **argv) {
         return 1;
     }
     else if (argc == 2) {
+       // if help is asked show help                                           
+       if (argv[1][0] == '-' && (argv[1][1] == 'H' || argv[1][1] == 'h')){     
+            puts("In order to calculate some thing you must write your command like this : ");
+            puts("./calc \"2+2\"");                                             
+            puts("Authorized character are the numbers, parenthesis and operands.");
+            puts("In order to mark a negative number you need to use a \"n\" before it");
+            puts("In order to get the square root of a number put a \"|\" before it");
+            puts("In order to get the power of a number use \"^\" as an operand");
+            puts("In order to get the remain of an euclidean division use \"\%\" as an operand");
+            return 0;                                                           
+        }                 
         formula_size = strlen(argv[1]);
         for(counter=0; counter<formula_size; counter++){
             for (i = 0; i < 27 ; i++){
+		// check for unauthorized characters
                 if (argv[1][counter] == authorized_char[i]){
                     good = 1;
                 }
             }
             if (good != 1){
+		// if an unauthorised character show that there is a problem
                 puts("You inputed a wrong character !");
                 exit(1);
-            }
-            else {
+            } else {
+		// else update formula
                 if (formula[counter] != ' '){
                     formula[counter] = argv[1][counter];
                 }
@@ -314,7 +332,7 @@ int main(int argc, char **argv) {
             }
         }
         formula[formula_size+1] = '\0';
-        printf("The formula provided is %s\n", formula);
+        printf("The formula provided is %s\n\n", formula);
         parenthesisCounter();
         return 0;
     }
